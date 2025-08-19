@@ -15,4 +15,19 @@ extension StatusLeituraExtension on StatusLeitura {
         return 'Não lido';
     }
   }
+
+  // Converte uma string para StatusLeitura
+  static StatusLeitura? fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'lido':
+        return StatusLeitura.lido;
+      case 'lendo':
+        return StatusLeitura.lendo;
+      case 'não lido':
+      case 'naolido':
+        return StatusLeitura.naoLido;
+      default:
+        return null;
+    }
+  }
 }

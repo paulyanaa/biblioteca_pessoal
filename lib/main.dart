@@ -1,122 +1,141 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'dart:convert';
 
-void main() {
-  runApp(const MyApp());
-}
+import 'models/livro.dart';
+import 'models/emprestimo.dart';
+import 'services/livro_service.dart';
+import 'services/emprestimo_service.dart';
+import 'models/status_leitura.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+void main() async {
+  final livroService = LivroService();
+  final emprestimoService = EmprestimoService();
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
+  while (true) {
+    print('\n=== Biblioteca Pessoal ===');
+    print('1. Listar todos os livros');
+    print('2. Adicionar livro');
+    print('3. Emprestar livro');
+    print('4. Listar todos os empréstimos');
+    print('5. Buscar livro por ID'); // NOVA OPÇÃO
+    print('0. Sair');
+    stdout.write('Escolha uma opção: ');
+    final input = stdin.readLineSync();
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+    switch (input) {
+      case '1':
+        final livros = await livroService.listarTodos();
+        print('\n=== Livros ===');
+        for (var livro in livros) {
+          final emprestado = livro.emprestimo != null ? ' - Emprestado para ${livro.emprestimo!.nomePessoa}' : '';
+          print(
+              '${livro.id}. ${livro.titulo} - ${livro.autor} - Status: ${livro.status.label}$emprestado');
+        }
+        break;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+      case '2':
+        stdout.write('Título: ');
+        final titulo = stdin.readLineSync() ?? '';
+        stdout.write('Autor: ');
+        final autor = stdin.readLineSync() ?? '';
+        stdout.write('Categoria: ');
+        final categoria = stdin.readLineSync() ?? '';
+        stdout.write('URL da capa: ');
+        final capaUrl = stdin.readLineSync() ?? '';
+        stdout.write('Avaliação (0-5): ');
+        final avaliacaoInput = stdin.readLineSync();
+        final avaliacao = double.tryParse(avaliacaoInput ?? '0') ?? 0;
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+        final livro = Livro(
+          titulo: titulo,
+          autor: autor,
+          categoria: categoria,
+          capaUrl: capaUrl,
+          status: StatusLeitura.naoLido,
+          avaliacao: avaliacao,
+        );
 
-  final String title;
+        await livroService.adicionar(livro);
+        print('Livro adicionado com sucesso!');
+        break;
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+      case '3':
+        stdout.write('ID do livro a emprestar: ');
+        final livroIdInput = stdin.readLineSync();
+        final livroId = int.tryParse(livroIdInput ?? '');
+        if (livroId == null) {
+          print('ID inválido!');
+          break;
+        }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+        stdout.write('Nome da pessoa: ');
+        final nomePessoa = stdin.readLineSync() ?? '';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+        final emprestimo = Emprestimo(
+          nomePessoa: nomePessoa,
+          dataEmprestimo: DateTime.now(),
+          dataDevolucao: null,
+        );
 
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+        await emprestimoService.adicionar(emprestimo);
+
+        final livro = await livroService.buscarPorId(livroId);
+        if (livro != null) {
+          livro.emprestimo = emprestimo;
+          livro.status = StatusLeitura.lendo;
+          await livroService.atualizar(livroId, livro);
+          print('Livro emprestado com sucesso para $nomePessoa!');
+        } else {
+          print('Livro não encontrado!');
+        }
+        break;
+
+      case '4':
+        final emprestimos = await emprestimoService.listarTodos();
+        print('\n=== Empréstimos ===');
+        for (var e in emprestimos) {
+          final devolucao = e.dataDevolucao != null
+              ? e.dataDevolucao.toString()
+              : 'Não devolvido';
+          print('${e.nomePessoa} - ${e.dataEmprestimo} - $devolucao');
+        }
+        break;
+
+      case '5': // BUSCAR POR ID
+        stdout.write('Digite o ID do livro: ');
+        final idInput = stdin.readLineSync();
+        final id = int.tryParse(idInput ?? '');
+        if (id == null) {
+          print('ID inválido!');
+          break;
+        }
+
+        final livro = await livroService.buscarPorId(id);
+        if (livro != null) {
+          print('\n=== Detalhes do Livro ===');
+          print('ID: ${livro.id}');
+          print('Título: ${livro.titulo}');
+          print('Autor: ${livro.autor}');
+          print('Categoria: ${livro.categoria}');
+          print('Capa: ${livro.capaUrl}');
+          print('Status: ${livro.status.label}');
+          print('Avaliação: ${livro.avaliacao}');
+          if (livro.emprestimo != null) {
+            print('Emprestado para: ${livro.emprestimo!.nomePessoa}');
+            print('Data do empréstimo: ${livro.emprestimo!.dataEmprestimo}');
+            print('Data de devolução: ${livro.emprestimo!.dataDevolucao ?? 'Não devolvido'}');
+          }
+        } else {
+          print('Livro não encontrado!');
+        }
+        break;
+
+      case '0':
+        print('Saindo...');
+        return;
+
+      default:
+        print('Opção inválida!');
+    }
   }
 }
