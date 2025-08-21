@@ -159,7 +159,7 @@ class _MinhaBibliotecaScreenState extends State<MinhaBibliotecaScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Minha Biblioteca',
+          'Minha Estante',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
