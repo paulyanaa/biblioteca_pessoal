@@ -4,7 +4,7 @@ import '../models/livro.dart';
 import '../models/emprestimo.dart';
 
 class LivroService {
-  final String baseUrl = 'http://localhost:8080';
+  final String baseUrl = 'https://api-biblioteca-pessoal.onrender.com';
 
   Future<List<Livro>> listarTodos() async {
     final response = await http.get(Uri.parse('$baseUrl/livros'));

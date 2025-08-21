@@ -3,7 +3,7 @@ import 'dart:convert';
 import '../models/emprestimo.dart';
 
 class EmprestimoService {
-  final String baseUrl = 'http://localhost:8080';
+  final String baseUrl = 'https://api-biblioteca-pessoal.onrender.com';
 
   Future<List<Emprestimo>> listarTodos() async {
     final response = await http.get(Uri.parse('$baseUrl/emprestimos'));
